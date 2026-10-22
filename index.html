@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1423">
+  <meta name="description" content="Bản đồ số 22 cơ sở lưu trú Phú Quốc: tra cứu khách sạn 3, 4, 5 sao và homestay từ dữ liệu khảo sát Excel.">
+  <title>Bản đồ số 22 cơ sở lưu trú Phú Quốc</title>
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root { color-scheme:dark; --bg:#0a1423; --bg2:#0f2033; --pane:#101f32; --pane2:#152a42; --line:#2a415a; --ink:#ecf8ff; --muted:#a6bdd0; --subtle:#7593ac; --mint:#4bdfc8; --r:16px; }
+    *,*::before,*::after {box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    body{overflow:hidden}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #a8ffe6;outline-offset:2px}
+    a{color:var(--mint)}
+    .app{height:100dvh;display:grid;grid-template-rows:79px minmax(0,1fr)}
+    .topbar{display:flex;align-items:center;gap:20px;justify-content:space-between;padding:11px 24px;position:relative;z-index:900;background:linear-gradient(108deg,#0b1525,#152e45);border-bottom:1px solid #29425b;box-shadow:0 10px 30px #0004}
+    .brand{display:flex;gap:13px;align-items:center;min-width:0}
+    .brand-logo{width:52px;height:52px;border-radius:15px;background:linear-gradient(145deg,#40d8b5,#4a97dc);display:grid;place-items:center;color:#06232b;font-size:28px;box-shadow:0 8px 22px #37dac437;flex:none}
+    .brand-title{font-weight:850;letter-spacing:.1px;font-size:19px;line-height:1.28}
+    .brand-desc{font-size:11px;color:#abc3d8;margin-top:4px}
+    .topstats{display:flex;gap:9px;align-items:center}
+    .topstat{border:1px solid #344e64;background:#162b40;padding:7px 13px;border-radius:12px;display:flex;align-items:center;gap:9px;white-space:nowrap}
+    .topstat strong{font-size:20px;color:#78e6d3;line-height:1}
+    .topstat span{font-size:10px;color:#abc4d8;line-height:1.3;max-width:80px}
+    .main{display:grid;grid-template-columns:384px minmax(0,1fr);min-height:0;position:relative}
+    .sidebar{min-height:0;min-width:0;display:flex;flex-direction:column;border-right:1px solid var(--line);background:linear-gradient(180deg,#101e31,#0b192b);z-index:420}
+    .sidebar-head{padding:22px 17px 16px;border-bottom:1px solid #263c53}
+    .eyebrow{font-size:10px;letter-spacing:1.85px;color:#57dcc8;text-transform:uppercase;font-weight:850}
+    .sidebar h2{font-size:21px;line-height:1.25;margin:8px 0 7px;font-weight:800}
+    .sidebar-intro{color:var(--muted);font-size:12px;margin:0 0 14px;line-height:1.58}
+    .searchbox{display:flex;align-items:center;gap:10px;min-height:47px;padding:0 13px;border:1px solid #395169;border-radius:12px;background:#192c43;transition:border-color .2s}
+    .searchbox:focus-within{border-color:var(--mint)}
+    .searchbox span{color:#81a7c0;font-size:21px}
+    .searchbox input{width:100%;background:transparent;border:0;outline:none;color:white;min-width:0;font-size:13px}
+    .searchbox input::placeholder{color:#83a0b8}
+    .filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:13px}
+    .chip{display:flex;align-items:center;gap:8px;text-align:left;min-width:0;min-height:41px;padding:8px 10px;border:1px solid #33506a;border-radius:11px;background:#142941;color:#d0e3f3;font-weight:690;font-size:11px;transition:background .15s,border .15s}
+    .chip:hover{background:#233c57}
+    .chip[aria-pressed="true"]{border-color:#50e3d0;background:#12434d;color:#ecfffb}
+    .chip .dot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--group,#63ddce)}
+    .chip .count{margin-left:auto;font-weight:900;color:var(--muted)}
+    .chip-all{grid-column:1/-1;justify-content:center}
+    .listhead{padding:13px 17px 10px;display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:11px}
+    .listhead strong{color:#e6f7ff;font-size:12px}
+    .places-list{padding:0 10px 18px;overflow-y:auto;min-height:0;scrollbar-width:thin;scrollbar-color:#385979 transparent}
+    .place-card{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;width:100%;align-items:stretch;text-align:left;color:inherit;background:#15283e;border:1px solid #2d455d;border-radius:14px;margin:0 0 9px;padding:7px;transition:background .18s,border-color .18s,transform .18s}
+    .place-card:hover{background:#203953;transform:translateY(-1px)}
+    .place-card.active{background:#19404d;border-color:#53dfc6}
+    .place-thumb{position:relative;overflow:hidden;border-radius:10px;min-height:87px;background:#28536b}
+    .place-thumb img{display:block;width:100%;height:100%;position:absolute;inset:0;object-fit:cover}
+    .place-thumb .thumb-overlay{position:absolute;bottom:6px;left:6px;padding:3px 6px;background:#081627d9;color:white;border:1px solid #ffffff32;border-radius:6px;font-size:9px;font-weight:780}
+    .place-text{min-width:0;padding:4px 5px 3px 0}
+    .place-meta{display:flex;align-items:center;gap:6px;color:#9ebbd0;font-size:10px;font-weight:700;letter-spacing:.2px;margin-bottom:4px}
+    .place-title{font-size:12.5px;font-weight:820;line-height:1.38;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .place-sub{font-size:10.5px;line-height:1.45;color:#aec5d6;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .sidebar-foot{font-size:10px;line-height:1.55;color:#97afc4;padding:12px 17px;border-top:1px solid #263c53}
+    .map-area{min-height:0;min-width:0;position:relative;background:#102b41;overflow:hidden}
+    #map{height:100%;width:100%;background:linear-gradient(140deg,#16324b,#0d263a)}
+    #map.map-dark .leaflet-tile-pane{filter:invert(.92) hue-rotate(182deg) brightness(.72) contrast(1.1) saturate(.7)}
+    .leaflet-container{font:inherit}
+    .leaflet-control-attribution{background:#fffef0e8!important;color:#30495d!important;font-size:10px!important}
+    .leaflet-popup-content-wrapper{background:#0f2134;color:#f3fcff;border:1px solid #42637a;border-radius:14px;box-shadow:0 17px 40px #001c}
+    .leaflet-popup-tip{background:#0f2134}
+    .leaflet-popup-content{width:252px!important;margin:9px!important}
+    .leaflet-popup-close-button{color:#c3d9e7!important}
+    .popup-photo{height:116px;width:100%;object-fit:cover;display:block;border-radius:9px}
+    .popup-body{padding:10px 6px 5px}
+    .popup-code{color:#58ddcb;font-size:10px;font-weight:850}
+    .popup-title{font-weight:850;font-size:15px;margin:4px 0;line-height:1.35}
+    .popup-desc{font-size:11px;color:#c1d6e7;line-height:1.5}
+    .popup-btn{border:0;border-radius:9px;background:#47d9c4;font-weight:850;color:#092a31;padding:9px 12px;width:100%;margin-top:10px}
+    .marker-host{background:transparent;border:0}
+    .marker-pin{position:relative;display:grid;place-items:center;height:44px;width:44px;background:#0c2034;border:3px solid var(--color);border-radius:16px 16px 15px 15px;font-size:21px;box-shadow:0 0 0 4px #0b203a66,0 7px 18px #001b}
+    .marker-pin::after{content:"";width:11px;height:11px;background:var(--color);position:absolute;bottom:-7px;transform:rotate(45deg);z-index:-1;border-radius:2px}
+    .marker-pin.active{background:#1d4f57;box-shadow:0 0 0 6px #4de3cd55,0 8px 18px #0021}
+    .map-tools{position:absolute;z-index:620;top:19px;left:19px;right:19px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;pointer-events:none}
+    .map-tools>*{pointer-events:auto}
+    .select-panel{padding:10px 12px;display:flex;align-items:center;gap:10px;border:1px solid #718b9b66;background:#0e2337ef;box-shadow:0 9px 24px #0016;border-radius:12px;backdrop-filter:blur(8px)}
+    .select-panel label{font-size:11px;color:#a6cadb;white-space:nowrap;font-weight:750}
+    .select-panel select{max-width:310px;min-width:165px;background:#102b42;border:0;outline:0;color:#efffff;font-size:12px;font-weight:740}
+    .select-panel select option{background:#0e2237}
+    .toolbtns{display:flex;gap:8px}
+    .toolbtn{height:43px;width:43px;display:grid;place-items:center;border-radius:12px;border:1px solid #7997a866;background:#10243aef;box-shadow:0 7px 20px #0015;color:#edfdff;font-size:18px}
+    .toolbtn:hover{background:#1a4563}
+    .map-summary{position:absolute;z-index:530;left:19px;bottom:32px;border-radius:14px;max-width:min(450px,calc(100% - 40px));background:#0d2338ed;border:1px solid #57738b96;padding:12px 14px;box-shadow:0 8px 24px #0005;pointer-events:none}
+    .map-summary strong{font-size:13px}
+    .map-summary p{font-size:10.5px;line-height:1.5;color:#bdd1df;margin:4px 0 0}
+    .legend{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:9px}
+    .legenditem{font-size:10px;color:#d3e2f0;white-space:nowrap}
+    .legenditem::before{content:"";width:7px;height:7px;display:inline-block;border-radius:50%;margin-right:5px;background:var(--color)}
+    .detail{position:absolute;z-index:720;top:10px;right:10px;bottom:10px;width:min(416px,calc(100% - 20px));border-radius:18px;background:#102239;box-shadow:0 15px 48px #000a;border:1px solid #4b6479;display:flex;flex-direction:column;min-height:0;overflow:hidden;transform:translateX(calc(100% + 20px));transition:transform .25s ease}
+    .detail.open{transform:translateX(0)}
+    .detail-close{position:absolute;z-index:2;top:11px;right:11px;width:37px;height:37px;border:1px solid #ffffff54;border-radius:12px;background:#0c1c2add;display:grid;place-items:center;font-size:23px;color:white}
+    .detail-inner{height:100%;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#3c647d transparent}
+    .hero{height:210px;position:relative;background:linear-gradient(120deg,#26516a,#2b7e8d)}
+    .hero img{width:100%;height:100%;object-fit:cover;display:block}
+    .hero::after{content:"";pointer-events:none;position:absolute;inset:45% 0 0;background:linear-gradient(transparent,#0c1d35dd)}
+    .hero-label{position:absolute;bottom:13px;left:15px;right:15px;z-index:1;display:flex;gap:8px;flex-wrap:wrap}
+    .hero-label span{border-radius:8px;background:#071d31dd;border:1px solid #ffffff45;color:white;font-size:10px;padding:5px 9px}
+    .detail-pad{padding:17px 19px 26px}
+    .detail-badges{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+    .pill{font-size:10px;padding:5px 8px;border-radius:7px;border:1px solid #5d8290;background:#163546;color:#bde9e1;font-weight:790}
+    .detail h2{font-size:22px;line-height:1.26;margin:6px 0 10px;letter-spacing:-.3px}
+    .address{font-size:12px;line-height:1.57;color:#b8d0de;margin:0 0 10px}
+    .note{font-size:11px;line-height:1.58;padding:10px 12px;border:1px solid #cc975a55;background:#3f301e88;color:#ffe1b5;border-radius:10px;margin:10px 0}
+    .intro{font-size:12px;line-height:1.73;color:#d8e9f3;margin:13px 0 16px;white-space:pre-line}
+    .section-title{font-size:12px;font-weight:880;color:#70ead4;letter-spacing:.2px;margin:18px 0 7px}
+    .dataitem{padding:10px 0;border-top:1px solid #294157}
+    .dataitem .name{font-size:10px;font-weight:780;color:#91b4c9;margin-bottom:4px}
+    .dataitem .value{font-size:12px;line-height:1.55;color:#e0f0f9;white-space:pre-line}
+    .pricebox{background:#193449;border:1px solid #396477;padding:13px;border-radius:12px;margin:15px 0}
+    .pricebox .name{font-size:10px;color:#a4c3d6}
+    .pricebox .value{font-size:14px;font-weight:870;color:#69e6d0;margin:5px 0}
+    .pricebox small{font-size:10px;color:#a9c3d6;line-height:1.5;display:block}
+    .more-data{border-top:1px solid #314b62;margin:10px 0 14px}
+    .more-data summary{font-size:12px;list-style:revert;font-weight:800;color:#d8f1ef;padding:13px 2px;cursor:pointer}
+    .actionrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 11px}
+    .linkbtn{background:#3fddc5;color:#062b30!important;text-align:center;text-decoration:none;font-weight:850;font-size:11px;border-radius:10px;padding:12px 7px;display:block}
+    .linkbtn.secondary{background:#1b364c;border:1px solid #52738a;color:#e0f4ff!important}
+    .photo-credit{padding-top:11px;border-top:1px solid #294157;color:#a6c2d4;font-size:10px;line-height:1.55}
+    .photo-credit a{color:#84ead7}
+    .empty{font-size:12px;color:#a9bfd2;padding:35px 12px;text-align:center}
+    .map-error{height:100%;display:grid;place-content:center;gap:9px;text-align:center;padding:30px;background:radial-gradient(circle at 30% 30%,#286076,#09243b);font-size:15px}
+    .map-error small{font-size:12px;color:#c1d3df;max-width:400px}
+    .mobile-list{display:none}
+    .leaflet-top.leaflet-left{top:69px}
+    @media(max-width:1050px){.main{grid-template-columns:342px minmax(0,1fr)}.topstat:last-child{display:none}.sidebar-head{padding:16px 12px}.place-card{grid-template-columns:81px 1fr}.map-summary{max-width:350px}}
+    @media(max-width:760px){
+      .app{grid-template-rows:67px minmax(0,1fr)}.topbar{padding:8px 12px}.brand-logo{width:43px;height:43px;font-size:23px}.brand-title{font-size:14px}.brand-desc{font-size:9px}.topstats{display:none}
+      .main{display:block}.map-area{position:absolute;inset:67px 0 0}.sidebar{position:absolute;z-index:810;top:auto;bottom:11px;left:10px;right:10px;height:min(68dvh,640px);border:1px solid #52718c;border-radius:17px;box-shadow:0 18px 44px #000a;transform:translateY(calc(100% + 22px));transition:transform .22s ease;overflow:hidden}
+      .sidebar.mobile-open{transform:translateY(0)}.sidebar-head{padding:13px}.sidebar h2{font-size:17px;margin:4px 0}.sidebar-intro{display:none}.filters{margin-top:9px;grid-template-columns:repeat(2,1fr);gap:6px}.chip{min-height:36px;padding:7px 9px}.searchbox{min-height:39px}
+      .map-tools{top:11px;left:10px;right:10px;gap:8px}.select-panel{padding:10px 9px;max-width:calc(100% - 94px);flex:1}.select-panel label{display:none}.select-panel select{min-width:0;width:100%;font-size:11px}.toolbtns{gap:6px}.toolbtn{height:39px;width:39px;font-size:17px}.mobile-list{display:grid}.btn-fullscreen{display:none}
+      .map-summary{bottom:24px;left:10px;right:10px;padding:10px 12px;max-width:calc(100% - 20px)}.map-summary p{display:none}.legend{gap:7px;margin-top:5px}.legenditem{font-size:9px}
+      .detail{z-index:850;top:auto;bottom:9px;left:8px;right:8px;width:auto;height:min(78dvh,700px);transform:translateY(calc(100% + 25px));border-radius:18px}.detail.open{transform:translateY(0)}.hero{height:184px}.detail-pad{padding:16px}
+    }
+    @media(max-width:390px){.brand-title{font-size:12px}.brand-desc{font-size:8px}.legenditem{font-size:8px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">🏝️</div>
+      <div>
+        <div class="brand-title">Bản đồ số cơ sở lưu trú Phú Quốc</div>
+        <div class="brand-desc">Bài thực hành bản đồ số · Dữ liệu từ Excel khảo sát sinh viên</div>
+      </div>
+    </div>
+    <div class="topstats" aria-label="Thống kê">
+      <div class="topstat"><strong id="topCount">22</strong><span>cơ sở lưu trú</span></div>
+      <div class="topstat"><strong>04</strong><span>nhóm phân loại</span></div>
+    </div>
+  </header>
+  <main class="main">
+    <aside id="sidebar" class="sidebar" aria-label="Danh sách cơ sở lưu trú">
+      <div class="sidebar-head">
+        <div class="eyebrow">PHU QUOC • STAY MAP</div>
+        <h2>Khám phá nơi lưu trú</h2>
+        <p class="sidebar-intro">Chọn tên cơ sở hoặc ghim trên bản đồ để xem mô tả, hình ảnh, tiện ích và chỉ đường.</p>
+        <label class="searchbox"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Tên cơ sở, mã điểm, tiện ích..." aria-label="Tìm cơ sở lưu trú" autocomplete="off"></label>
+        <div id="chips" class="filters" aria-label="Lọc theo nhóm lưu trú"></div>
+      </div>
+      <div class="listhead"><strong id="listCount">22 địa điểm</strong><span>Phú Quốc • 2026</span></div>
+      <div id="list" class="places-list" aria-live="polite"></div>
+      <div class="sidebar-foot">Dữ liệu theo bảng Excel. Tọa độ, hạng sao và thông tin dịch vụ cần được sinh viên kiểm chứng trước khi công bố.</div>
+    </aside>
+    <section class="map-area" aria-label="Bản đồ địa điểm lưu trú Phú Quốc">
+      <div id="map" class="map-dark" aria-label="Bản đồ tương tác"></div>
+      <div class="map-tools">
+        <div class="select-panel"><label for="groupSelect">Nhóm lưu trú</label><select id="groupSelect" aria-label="Lọc nhóm trên bản đồ"></select></div>
+        <div class="toolbtns">
+          <button id="resetBtn" class="toolbtn" aria-label="Đặt lại bộ lọc" title="Hiển thị tất cả">⌂</button>
+          <button id="themeBtn" class="toolbtn" aria-label="Chuyển bản đồ sáng" title="Bật bản đồ sáng">☀</button>
+          <button id="fullBtn" class="toolbtn btn-fullscreen" aria-label="Toàn màn hình" title="Toàn màn hình">⛶</button>
+          <button id="mobileList" class="toolbtn mobile-list" aria-label="Mở danh sách" title="Danh sách">☰</button>
+        </div>
+      </div>
+      <div class="map-summary"><strong><span id="mapCount">22</span> địa điểm đang hiển thị</strong>
+        <p>Ghim bản đồ dựa trên tọa độ từ Excel; ảnh sưu tầm trực tuyến không thay thế ảnh khảo sát thực địa.</p>
+        <div class="legend" id="legend"></div>
+      </div>
+      <aside class="detail" id="detail" role="dialog" aria-label="Thông tin cơ sở lưu trú" aria-modal="false" aria-hidden="true">
+        <button id="detailClose" class="detail-close" aria-label="Đóng chi tiết">×</button>
+        <div class="detail-inner" id="detailContent"></div>
+      </aside>
+    </section>
+  </main>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="du_lieu.js"></script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const POINTS=Array.isArray(window.PHUQUOC_PLACES)?window.PHUQUOC_PLACES:[];
+const GROUPS={
+ 'Khách sạn/Resort 5 sao':{short:'KS / Resort 5 sao',label:'Khách sạn / Resort 5 sao',color:'#f5be70'},
+ 'Khách sạn 4 sao':{short:'Khách sạn 4 sao',label:'Khách sạn 4 sao',color:'#68b5fd'},
+ 'Khách sạn 3 sao':{short:'Khách sạn 3 sao',label:'Khách sạn 3 sao',color:'#bf9afa'},
+ 'Homestay':{short:'Homestay',label:'Homestay',color:'#4cdfbd'}
+};
+const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s??'').toLocaleLowerCase('vi').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');
+const photo=p=>(/^https:\/\//.test(p.image)||/^anh\/[a-zA-Z0-9._/-]+$/.test(p.image))?p.image:'';
+const sourceLink=u=>/^https:\/\//.test(u||'')?u:'#';
+const groupLabel=p=>GROUPS[p.group]?.label||p.group;
+const groupColor=p=>GROUPS[p.group]?.color||'#4cdfbd';
+const readable=p=>(p.name+' '+p.group+' '+p.id+' '+p.address+' '+p.description+' '+p.amenities+' '+p.nearby+' '+p.rooms);
+let group='all',term='',selected=null,map=null,dark=true;
+const markers=new Map();
+function fallbackSvg(p){
+ const colors={'Khách sạn/Resort 5 sao':['#215c83','#55acb5','#f6bd81'],'Khách sạn 4 sao':['#28446c','#5d8bbb','#f9c17a'],'Khách sạn 3 sao':['#454c83','#9c81be','#f8c5aa'],'Homestay':['#195e6c','#6dbeb9','#f2bc77']}[p.group]||['#266a70','#81b3a0','#e5bb83'];
+ const n=safe(p.id+' · PHÚ QUỐC');
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" width="900" height="540"><defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="${colors[0]}"/><stop offset="1" stop-color="${colors[1]}"/></linearGradient><linearGradient id="sea" x2="0" y2="1"><stop stop-color="#2d8d9d"/><stop offset="1" stop-color="#183b67"/></linearGradient></defs><rect width="900" height="540" fill="url(#sky)"/><circle cx="730" cy="103" r="68" fill="${colors[2]}" opacity=".85"/><path d="M0 316Q160 280 312 320T610 290T900 305V540H0Z" fill="#214f5d" opacity=".7"/><rect x="0" y="376" width="900" height="164" fill="url(#sea)"/><path d="M0 388Q150 377 300 388T600 388T900 388M0 421Q150 410 300 421T600 421T900 421" fill="none" stroke="#b2eced" stroke-width="5" opacity=".42"/><g><rect x="295" y="202" width="305" height="175" rx="9" fill="#ecdfcc"/><rect x="285" y="193" width="324" height="22" rx="5" fill="#7b5f67"/><rect x="340" y="153" width="220" height="48" rx="8" fill="#ffeed6"/><rect x="331" y="146" width="238" height="16" rx="3" fill="#765c69"/><g fill="#497b98"><rect x="328" y="244" width="44" height="63" rx="5"/><rect x="397" y="244" width="44" height="63" rx="5"/><rect x="466" y="244" width="44" height="63" rx="5"/><rect x="536" y="244" width="39" height="63" rx="5"/></g><rect x="414" y="320" width="68" height="58" rx="4" fill="#966f65"/></g><path d="M155 386Q144 268 188 180" stroke="#554c45" stroke-width="15" fill="none"/><path d="M188 181Q125 143 85 165M188 181Q228 118 270 149M188 181Q129 210 81 214M188 181Q255 192 276 226" stroke="#225e46" stroke-width="19" stroke-linecap="round"/><rect x="0" y="470" width="900" height="70" fill="#081f35" opacity=".7"/><text x="34" y="514" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#fff">${n}</text><text x="865" y="512" text-anchor="end" font-family="Arial,sans-serif" font-size="14" fill="#d4ecf1">MINH HỌA ĐỒ HỌA</text></svg>`;
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+function imageTag(p,className='',extra=''){
+ const url=photo(p)||fallbackSvg(p);
+ return `<img src="${safe(url)}" data-pid="${safe(p.id)}" class="${className}" alt="${safe(p.imageKind==='area'?'Ảnh minh họa khu vực của ':'Ảnh giới thiệu ')}${safe(p.name)}" ${extra}>`;
+}
+document.addEventListener('load',e=>{
+ const img=e.target;
+ if(img instanceof HTMLImageElement && img.dataset.pid && !img.dataset.failed){
+   const p=POINTS.find(o=>o.id===img.dataset.pid);if(!p)return;
+   const holder=img.closest('.hero,.place-thumb');
+   const tag=holder?.querySelector('.img-label');
+   if(tag)tag.textContent=p.imageKind==='area'?'Ảnh minh họa khu vực':'Ảnh cơ sở từ nguồn công khai';
+ }
+},true);
+document.addEventListener('error',e=>{
+ const img=e.target;
+ if(img instanceof HTMLImageElement && img.dataset.pid && !img.dataset.failed){
+   const p=POINTS.find(o=>o.id===img.dataset.pid);if(!p)return;
+   img.dataset.failed='true'; img.src=fallbackSvg(p);
+   const holder=img.closest('.hero,.place-thumb');
+   if(holder){const tag=holder.querySelector('.img-label');if(tag)tag.textContent='Minh họa đồ họa';}
+ }
+},true);
+function currentPoints(){return POINTS.filter(p=>(group==='all'||p.group===group)&&norm(readable(p)).includes(norm(term)));}
+function setGroup(value){group=value;$('groupSelect').value=value;document.querySelectorAll('[data-group]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.group===value)));update();}
+function buildControls(){
+ const select=$('groupSelect');const chips=$('chips');
+ const groups=[['all','Tất cả địa điểm',POINTS.length],...Object.entries(GROUPS).map(([key,val])=>[key,val.short,POINTS.filter(p=>p.group===key).length])];
+ for(const [key,label,count] of groups){
+   const opt=document.createElement('option');opt.value=key;opt.textContent=key==='all'?`Tất cả ${count} cơ sở`:label+` (${count})`;select.appendChild(opt);
+   const b=document.createElement('button');b.type='button';b.className='chip'+(key==='all'?' chip-all':'');b.dataset.group=key;b.setAttribute('aria-pressed',String(key==='all'));
+   const dot=key==='all'?'':`<span class="dot" style="--group:${safe(GROUPS[key].color)}"></span>`;
+   b.innerHTML=`${dot}<span>${safe(label)}</span><span class="count">${count}</span>`;b.onclick=()=>setGroup(key);chips.appendChild(b);
+ }
+ select.onchange=()=>setGroup(select.value);
+ $('legend').innerHTML=Object.entries(GROUPS).map(([key,val])=>`<span class="legenditem" style="--color:${val.color}">${safe(val.short)}</span>`).join('');
+ $('topCount').textContent=String(POINTS.length);
+}
+function drawList(){
+ const pts=currentPoints();$('listCount').textContent=`${pts.length} / ${POINTS.length} địa điểm`;$('mapCount').textContent=String(pts.length);
+ const list=$('list');
+ if(!pts.length){list.innerHTML='<div class="empty">Không tìm thấy địa điểm phù hợp.<br>Thử từ khóa hoặc bộ lọc khác.</div>';return;}
+ list.innerHTML=pts.map(p=>`<button class="place-card ${selected===p.id?'active':''}" type="button" data-id="${safe(p.id)}" aria-label="Xem ${safe(p.name)}"><span class="place-thumb" style="background-image:url('${fallbackSvg(p)}');background-size:cover;background-position:center">${imageTag(p,'','loading="lazy"')}<span class="thumb-overlay">${safe(p.id)}</span></span><span class="place-text"><span class="place-meta" style="color:${groupColor(p)}">● ${safe(groupLabel(p))}</span><span class="place-title">${safe(p.name)}</span><span class="place-sub">${safe(p.address)}</span></span></button>`).join('');
+}
+function detailRows(fields){return fields.filter(([,value])=>value&&value.trim()).map(([key,value])=>`<div class="dataitem"><div class="name">${safe(key)}</div><div class="value">${safe(value)}</div></div>`).join('');}
+function routeUrl(p){return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(p.lat+','+p.lng);}
+function renderDetail(p){
+ const warn=p.verificationNote?`<div class="note">⚠ ${safe(p.verificationNote)}</div>`:'';
+ const imgStatus='Minh họa đồ họa · đang tải ảnh trực tuyến';
+ const intro=p.description?`<p class="intro">${safe(p.description)}</p>`:'';
+ const primary=detailRows([['Đặc điểm nổi bật',p.highlights],['Loại phòng phổ biến',p.rooms],['Tiện ích chính',p.amenities],['Điểm kết nối lân cận',p.nearby]]);
+ const more=detailRows([['Ẩm thực / Nhà hàng',p.food],['Hồ bơi / Spa / Gym',p.wellness],['Hội nghị / Sự kiện',p.events],['Bãi đỗ xe / Khả năng tiếp cận',p.parking],['Thực hành xanh theo ghi nhận',p.green],['Nhóm khách phục vụ',p.audience],['Điểm hạn chế / Ghi chú khảo sát',p.limitations]]);
+ const price=p.price?`<div class="pricebox"><div class="name">GIÁ THAM KHẢO GHI TRONG EXCEL</div><div class="value">${safe(p.price)}</div><small>Nguồn ghi trong Excel: ${safe(p.priceSource||'Không ghi')}. Chưa có ngày kiểm tra xác nhận; giá không phải báo giá hiện hành.</small></div>`:'';
+ $('detailContent').innerHTML=`
+  <div class="hero" style="background-image:url('${fallbackSvg(p)}');background-size:cover;background-position:center">${imageTag(p,'','fetchpriority="high"')}<div class="hero-label"><span class="img-label">${safe(imgStatus)}</span><span>${safe(p.id)}</span></div></div>
+  <div class="detail-pad"><div class="detail-badges"><span class="pill" style="border-color:${groupColor(p)};color:${groupColor(p)}">${safe(groupLabel(p))}</span><span class="pill">${safe(p.type)}</span></div>
+  <h2>${safe(p.name)}</h2><p class="address">📍 ${safe(p.address)}</p>
+  <div class="dataitem"><div class="name">TỌA ĐỘ THEO EXCEL · CHƯA XÁC MINH ĐỘC LẬP</div><div class="value">${Number(p.lat).toFixed(6)}, ${Number(p.lng).toFixed(6)} · ${safe(p.stars||'Không áp dụng')}</div></div>
+  ${warn}<h3 class="section-title">Giới thiệu từ dữ liệu khảo sát</h3>${intro}
+  <h3 class="section-title">Thông tin cơ sở</h3>${primary}${price}
+  <details class="more-data"><summary>Xem thêm ghi chép khảo sát</summary>${more||'<p>Chưa có thông tin bổ sung.</p>'}</details>
+  <div class="actionrow"><a class="linkbtn" href="${safe(routeUrl(p))}" target="_blank" rel="noopener noreferrer">➤ Chỉ đường</a><a class="linkbtn secondary" href="${safe(sourceLink(p.mapsLink))}" target="_blank" rel="noopener noreferrer">↗ Link Maps trong Excel</a></div>
+  <div class="photo-credit">${safe(p.imageLabel)}. Nguồn: <a href="${safe(sourceLink(p.imagePage))}" target="_blank" rel="noopener noreferrer">${safe(p.imageSource)} ↗</a>. Ảnh tải qua liên kết của bên thứ ba; cần kiểm tra quyền sử dụng trước khi đăng công khai.</div>
+  </div>`;
+ $('detail').classList.add('open');$('detail').setAttribute('aria-hidden','false');
+ $('detailContent').scrollTop=0;
+}
+function closeDetail(){selected=null;$('detail').classList.remove('open');$('detail').setAttribute('aria-hidden','true');drawList();updateMarkerIcons();}
+function selectPoint(id){
+ const p=POINTS.find(x=>x.id===id);if(!p)return;
+ selected=id;renderDetail(p);drawList();updateMarkerIcons();
+ if(map&&markers.has(id)){map.flyTo([p.lat,p.lng],Math.max(map.getZoom(),12),{duration:.4});}
+ $('sidebar').classList.remove('mobile-open');
+}
+function updateMarkerIcons(){
+ if(!map)return;
+ for(const p of POINTS){const m=markers.get(p.id);if(!m)continue;
+  const el=m.getElement();if(el){const pin=el.querySelector('.marker-pin');if(pin)pin.classList.toggle('active',selected===p.id);}
+ }
+}
+function popupHtml(p){return `${imageTag(p,'popup-photo','loading="lazy"')}<div class="popup-body"><div class="popup-code">${safe(p.id)} · ${safe(groupLabel(p))}</div><div class="popup-title">${safe(p.name)}</div><div class="popup-desc">${safe(p.address)}</div><button type="button" class="popup-btn" data-detail-id="${safe(p.id)}">Xem thông tin chi tiết →</button></div>`;}
+function initMap(){
+ if(typeof window.L==='undefined'){
+   $('map').innerHTML='<div class="map-error">🗺️ <strong>Chưa tải được nền bản đồ</strong><small>Kết nối Internet để tải Leaflet và OpenStreetMap. Danh sách, ảnh và thông tin cơ sở vẫn có thể tra cứu ở bên trái.</small></div>';
+   return;
+ }
+ map=L.map('map',{zoomControl:false,preferCanvas:true}).setView([10.185,103.967],11);
+ L.control.zoom({position:'bottomright'}).addTo(map);
+ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'}).addTo(map);
+ for(const p of POINTS){
+   if(!Number.isFinite(p.lat)||!Number.isFinite(p.lng))continue;
+   const col=groupColor(p);
+   const ico=L.divIcon({className:'marker-host',html:`<div class="marker-pin" style="--color:${col}">${safe(p.icon)}</div>`,iconSize:[44,48],iconAnchor:[22,46],popupAnchor:[0,-36]});
+   const m=L.marker([p.lat,p.lng],{icon:ico,title:p.name});
+   m.bindPopup(()=>popupHtml(p),{maxWidth:270,autoPanPaddingTopLeft:[18,80]});
+   m.on('click',()=>{selected=p.id;drawList();updateMarkerIcons();});
+   markers.set(p.id,m);
+ }
+ map.on('click',()=>{$('sidebar').classList.remove('mobile-open');});
+ update(true);
+}
+function update(fit=true){
+ const pts=currentPoints();
+ drawList();if(!map)return;
+ const active=new Set(pts.map(x=>x.id));
+ for(const p of POINTS){const m=markers.get(p.id);if(!m)continue;
+  if(active.has(p.id)){if(!map.hasLayer(m))m.addTo(map);}else if(map.hasLayer(m))map.removeLayer(m);
+ }
+ if(fit&&pts.length){const bounds=L.latLngBounds(pts.map(p=>[p.lat,p.lng]));map.fitBounds(bounds,{paddingTopLeft:[60,80],paddingBottomRight:[60,60],maxZoom:14,animate:false});}
+ if(selected&&!active.has(selected)){closeDetail();}
+ updateMarkerIcons();
+}
+$('search').addEventListener('input',e=>{term=e.target.value;update(false);});
+$('list').addEventListener('click',e=>{const btn=e.target.closest('[data-id]');if(btn)selectPoint(btn.dataset.id);});
+$('map').addEventListener('click',e=>{const btn=e.target.closest('[data-detail-id]');if(btn)selectPoint(btn.dataset.detailId);});
+$('detailClose').onclick=closeDetail;
+$('resetBtn').onclick=()=>{term='';$('search').value='';group='all';$('groupSelect').value='all';document.querySelectorAll('[data-group]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.group==='all')));closeDetail();update();};
+$('themeBtn').onclick=()=>{dark=!dark;$('map').classList.toggle('map-dark',dark);$('themeBtn').textContent=dark?'☀':'☾';$('themeBtn').title=dark?'Bật bản đồ sáng':'Bật bản đồ tối';$('themeBtn').setAttribute('aria-label',$('themeBtn').title);};
+$('fullBtn').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{});else document.exitFullscreen?.().catch(()=>{});};
+$('mobileList').onclick=()=>{$('sidebar').classList.toggle('mobile-open');if($('sidebar').classList.contains('mobile-open'))$('detail').classList.remove('open');else if(selected)$('detail').classList.add('open');};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDetail();$('sidebar').classList.remove('mobile-open');}});
+window.addEventListener('resize',()=>map?.invalidateSize());
+buildControls();drawList();initMap();
+</script>
+</body>
+</html>
